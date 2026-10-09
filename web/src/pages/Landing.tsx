@@ -14,6 +14,7 @@ import { Input } from "@/components/ui/input";
 import { Switch } from "@/components/ui/switch";
 import { api, type Health, type RecordedRun, type Result, type ScenarioCard } from "@/lib/api";
 import { navigate } from "@/lib/router";
+import { saveCode, savedCode } from "@/lib/access";
 import { cn, money } from "@/lib/utils";
 import { REPO_URL } from "@/components/brand";
 
@@ -32,11 +33,7 @@ function useLauncher(health: Health | null) {
     setError(null);
     try {
       const { id } = await api.start({ ...l, access_code: accessCode });
-      try {
-        sessionStorage.setItem("pg-code", accessCode || "");
-      } catch {
-        /* storage unavailable */
-      }
+      if (accessCode) saveCode(accessCode);
       setPending(null);
       navigate(`/run/${id}`);
     } catch (e) {
@@ -49,12 +46,7 @@ function useLauncher(health: Health | null) {
 
   function launch(l: Launch) {
     if (health?.access_code_required) {
-      let saved = "";
-      try {
-        saved = sessionStorage.getItem("pg-code") || "";
-      } catch {
-        /* storage unavailable */
-      }
+      const saved = savedCode();
       if (saved) return start(l, saved);
       setPending(l);
       return;
