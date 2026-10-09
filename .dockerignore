@@ -1,0 +1,13 @@
+.git
+.env
+.venv
+.polygraph
+.claude
+**/__pycache__
+**/*.pyc
+web/node_modules
+web/dist
+deck
+docs
+bench/results
+tests

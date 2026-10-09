@@ -1,0 +1,92 @@
+name: Polygraph
+description: Check the claims a pull request makes by running the base and head code side by side.
+author: Yashvardhan Thanvi
+branding:
+  icon: activity
+  color: red
+
+inputs:
+  nebius-api-key:
+    description: Nebius Token Factory API key
+    required: true
+  tavily-api-key:
+    description: Optional Tavily key for changelog research on dependency bumps
+    required: false
+    default: ""
+  comment:
+    description: Post the claim ledger as a pull request comment
+    required: false
+    default: "true"
+  fail-on-inconsistent:
+    description: Fail the job when the verdict is inconsistent
+    required: false
+    default: "true"
+  run-budget-usd:
+    description: Hard cap on Token Factory spend for one run
+    required: false
+    default: "0.25"
+
+outputs:
+  verdict:
+    description: consistent, needs_review, or inconsistent
+    value: ${{ steps.run.outputs.verdict }}
+
+runs:
+  using: composite
+  steps:
+    - uses: actions/setup-python@v5
+      with:
+        python-version: "3.12"
+
+    - name: Install Polygraph
+      shell: bash
+      run: pip install --quiet "${{ github.action_path }}" uv pytest
+
+    - name: Examine pull request
+      id: run
+      shell: bash
+      env:
+        NEBIUS_API_KEY: ${{ inputs.nebius-api-key }}
+        TAVILY_API_KEY: ${{ inputs.tavily-api-key }}
+        POLYGRAPH_RUN_BUDGET_USD: ${{ inputs.run-budget-usd }}
+        POLYGRAPH_DAILY_BUDGET_USD: ${{ inputs.run-budget-usd }}
+        PR_TITLE: ${{ github.event.pull_request.title }}
+        PR_BODY: ${{ github.event.pull_request.body }}
+        BASE_SHA: ${{ github.event.pull_request.base.sha }}
+        HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+      run: |
+        set +e
+        polygraph local . --base "$BASE_SHA" --head "$HEAD_SHA" --title "$PR_TITLE" --body "$PR_BODY" --out polygraph-result.json
+        code=$?
+        set -e
+        python - <<'PY'
+        import json, os
+        r = json.load(open("polygraph-result.json", encoding="utf-8"))
+        open("polygraph-comment.md", "w", encoding="utf-8").write(r["artifacts"]["markdown"])
+        open("test_polygraph_pinned.py", "w", encoding="utf-8").write(r["artifacts"]["pinned_tests"])
+        with open(os.environ["GITHUB_OUTPUT"], "a") as fh:
+            fh.write(f"verdict={r['verdict']['label']}\n")
+        PY
+        echo "exit_code=$code" >> "$GITHUB_OUTPUT"
+
+    - name: Comment on pull request
+      if: inputs.comment == 'true' && github.event_name == 'pull_request'
+      shell: bash
+      env:
+        GH_TOKEN: ${{ github.token }}
+      run: gh pr comment "${{ github.event.pull_request.number }}" --body-file polygraph-comment.md
+
+    - name: Upload pinned tests
+      uses: actions/upload-artifact@v4
+      with:
+        name: polygraph-pinned-tests
+        path: |
+          test_polygraph_pinned.py
+          polygraph-result.json
+
+    - name: Gate on verdict
+      if: inputs.fail-on-inconsistent == 'true' && steps.run.outputs.verdict == 'inconsistent'
+      shell: bash
+      run: |
+        echo "Polygraph verdict: inconsistent. See the PR comment for the claim ledger."
+        exit 1

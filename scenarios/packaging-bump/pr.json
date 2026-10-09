@@ -1,0 +1,11 @@
+{
+  "order": 3,
+  "title": "chore(deps): bump packaging from 21.3 to 24.1",
+  "repo": "acme/pluginhub",
+  "author": "deps-bot[bot]",
+  "base_ref": "main",
+  "head_ref": "deps/packaging-24.1",
+  "blurb": "A routine dependency bump with zero lines of code changed. CI is green.",
+  "body": "Bumps [packaging](https://github.com/pypa/packaging) from 21.3 to 24.1.\n\nRelease notes: https://packaging.pypa.io/en/stable/changelog.html\n\nThis is a routine maintenance update. No code changes are required and the existing test suite passes.\n\nDependabot-style compatibility score: high.",
+  "commits": ["chore(deps): bump packaging from 21.3 to 24.1"]
+}

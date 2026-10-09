@@ -1,0 +1,21 @@
+{
+  "order": 2,
+  "title": "Fix #42: parse_duration crashes on empty input, add compound durations",
+  "repo": "acme/timekit",
+  "author": "j-rivera",
+  "base_ref": "main",
+  "head_ref": "fix/42-empty-duration",
+  "blurb": "A human bug fix with three promises and two new tests. Two promises hold.",
+  "body": "Fixes #42.\n\n- Empty or whitespace-only input now raises a clear `ValueError` instead of crashing with `IndexError`.\n- Adds compound durations such as `1h30m` and `2h15m30s`.\n- Adds a `d` unit for days, so `2d` is 172800 seconds.\n\nExisting single-unit inputs behave exactly as before. Added tests for the new cases.",
+  "commits": [
+    "fix: raise ValueError on empty duration (#42)",
+    "feat: compound durations and days"
+  ],
+  "linked_issues": [
+    {
+      "number": 42,
+      "title": "parse_duration('') raises IndexError",
+      "body": "Calling `parse_duration('')` or `parse_duration('   ')` crashes with `IndexError: string index out of range`. It should raise a `ValueError` like other invalid input so callers can handle it in one place."
+    }
+  ]
+}

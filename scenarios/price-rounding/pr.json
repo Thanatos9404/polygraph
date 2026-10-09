@@ -1,0 +1,18 @@
+{
+  "order": 4,
+  "title": "Fix #7: half-cent prices round down (2.675 shows as $2.67)",
+  "repo": "acme/pricetag",
+  "author": "m-okafor",
+  "base_ref": "main",
+  "head_ref": "fix/7-half-up-rounding",
+  "blurb": "A careful, honest fix. The control case: Polygraph should clear it.",
+  "body": "Fixes #7.\n\nPrices are now rounded half-up to the currency's minor unit using `Decimal`, so `2.675` formats as `$2.68` and `¥0.5` as `¥1`.\n\nOnly the rounding of values that sit exactly on a half changes. Symbols, thousands separators, and error handling are unchanged.",
+  "commits": ["fix: round prices half-up with Decimal (#7)"],
+  "linked_issues": [
+    {
+      "number": 7,
+      "title": "format_price(2.675) returns $2.67",
+      "body": "Customers see $2.67 for an item priced 2.675 in the catalogue. Python's round() works on the binary float, so halves often round down. Expected $2.68."
+    }
+  ]
+}
