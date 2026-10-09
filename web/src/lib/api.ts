@@ -290,6 +290,48 @@ export function downloadText(name: string, text: string, type = "text/plain") {
   setTimeout(() => URL.revokeObjectURL(url), 2000);
 }
 
+type LiveBody = { kind: string; scenario?: string; url?: string; access_code?: string };
+// Serverless backends run a whole examination inside one streaming POST; the run page opens it by id.
+const pendingLive = new Map<string, LiveBody>();
+
+async function postStream(body: LiveBody, onEvent: (e: StreamEvent) => void, signal: AbortSignal): Promise<void> {
+  const res = await fetch(`${API}/api/live`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json", Accept: "text/event-stream" },
+    body: JSON.stringify(body),
+    signal,
+  });
+  if (!res.ok || !res.body) {
+    let msg = res.statusText;
+    try {
+      msg = (await res.json()).detail || msg;
+    } catch {
+      /* not JSON */
+    }
+    onEvent({ type: "error", ts: Date.now() / 1000, data: { message: msg } });
+    return;
+  }
+  const reader = res.body.getReader();
+  const dec = new TextDecoder();
+  let buf = "";
+  for (;;) {
+    const { value, done } = await reader.read();
+    if (done) break;
+    buf += dec.decode(value, { stream: true }).replace(/\r\n/g, "\n");
+    let cut: number;
+    while ((cut = buf.indexOf("\n\n")) >= 0) {
+      const block = buf.slice(0, cut);
+      buf = buf.slice(cut + 2);
+      const data = block
+        .split("\n")
+        .filter((l) => l.startsWith("data:"))
+        .map((l) => l.slice(5).trimStart())
+        .join("\n");
+      if (data) onEvent(JSON.parse(data) as StreamEvent);
+    }
+  }
+}
+
 const EVENT_TYPES = [
   "run", "stage", "universe", "claim", "research", "experiment", "probe", "repair", "execution",
   "suite", "model_call", "divergence", "ledger", "log", "done", "error",
@@ -311,6 +353,11 @@ export const api = {
   start: (body: { kind: string; scenario?: string; url?: string; access_code?: string }) => {
     if (!canLive) {
       return Promise.reject(new Error("This static demo replays recorded runs. Run live with the CLI: polygraph pr <url>"));
+    }
+    if (STATIC) {
+      const id = `live-${Math.random().toString(36).slice(2, 10)}`;
+      pendingLive.set(id, body);
+      return Promise.resolve({ id });
     }
     return fetch(`${API}/api/runs`, {
       method: "POST",
@@ -355,13 +402,21 @@ export const api = {
         onEnd();
       };
     };
-    if (STATIC) {
-      staticRun(id).then((doc) => (doc ? replay(doc) : canLive ? live() : onEnd()));
+    const pending = pendingLive.get(id);
+    const abort = new AbortController();
+    if (pending) {
+      pendingLive.delete(id);
+      postStream(pending, (ev) => !stopped && onEvent(ev), abort.signal)
+        .catch((e) => !stopped && onEvent({ type: "error", ts: Date.now() / 1000, data: { message: String(e?.message || e) } }))
+        .finally(() => !stopped && onEnd());
+    } else if (STATIC) {
+      staticRun(id).then((doc) => (doc ? replay(doc) : onEnd()));
     } else {
       live();
     }
     return () => {
       stopped = true;
+      abort.abort();
       es?.close();
     };
   },

@@ -74,7 +74,11 @@ JavaScript and TypeScript universes, Hypothesis-style input shrinking for minima
 
 ## Testing instructions
 
-- Live demo: `<HF Space URL>`. Recorded runs replay for free from the landing page ("Replay recorded run").
+- Live demo: https://yvt94-polygraph.static.hf.space
+- Video: https://youtu.be/VFzUl18uwP8
+- Pitch deck: https://drive.google.com/file/d/1qhkE1zz1Kd63j91KUNJRkx0nBC0VPRRt/view?usp=sharing
+- Source: https://github.com/Thanatos9404/polygraph
+- Recorded runs replay for free from the landing page ("Replay recorded run").
 - Live runs: click "Run live" on any case file, or paste a public GitHub PR URL into the hero. Access code: `<ACCESS CODE>`.
 - Local: `uv venv && uv pip install -e .`, add `NEBIUS_API_KEY` to `.env`, then `polygraph scenario packaging-bump` or `polygraph pr https://github.com/python-humanize/humanize/pull/381`.
 

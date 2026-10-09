@@ -25,7 +25,7 @@ Built for the Nebius x NVIDIA Global AI Hackathon, **Coding and Agentic Engineer
 - **Run it live yourself:** `polygraph pr <github-pr-url>` (see Quick start), or deploy the API for free:
 
   [![Deploy to Render](https://render.com/images/deploy-to-render-button.svg)](https://render.com/deploy?repo=https://github.com/Thanatos9404/polygraph)
-- Deck: [`deck/Polygraph.pdf`](deck/Polygraph.pdf)
+- **Pitch deck:** https://drive.google.com/file/d/1qhkE1zz1Kd63j91KUNJRkx0nBC0VPRRt/view?usp=sharing
 
 ---
 

@@ -21,7 +21,25 @@ from typing import Any
 from ..config import settings
 from . import BUILD_ENV, PYTEST_ARGS, HARNESS_PATH, SandboxError, Universe, install_spec, parse_harness_output, parse_pytest
 
-_SAFE_ENV = ("PATH", "SYSTEMROOT", "WINDIR", "TEMP", "TMP", "HOME", "USERPROFILE", "LANG", "LC_ALL", "COMSPEC")
+_SAFE_ENV = (
+    "PATH", "SYSTEMROOT", "WINDIR", "TEMP", "TMP", "HOME", "USERPROFILE", "LANG", "LC_ALL", "COMSPEC", "LD_LIBRARY_PATH",
+)
+# Serverless hosts (Vercel) have one interpreter and a writable /tmp only.
+SERVERLESS = bool(os.getenv("VERCEL") or os.getenv("AWS_LAMBDA_FUNCTION_NAME"))
+VENV_PYTHON = os.getenv("POLYGRAPH_VENV_PYTHON") or (sys.executable if SERVERLESS else "3.12")
+
+
+def _uv() -> str | None:
+    """uv from PATH, or the binary shipped inside the `uv` wheel."""
+    found = shutil.which("uv")
+    if found:
+        return found
+    try:
+        from uv import find_uv_bin
+
+        return find_uv_bin()
+    except Exception:  # noqa: BLE001
+        return None
 
 
 def _venv_python(venv: Path) -> Path:
@@ -55,7 +73,7 @@ class LocalExecutor:
 
     async def _project_venv(self, label: str, root: Path, spec: str, requirements: str | None) -> tuple[str, dict[str, Any]]:
         """A venv of this universe's own, with the project installed editable so generated files and entry points exist."""
-        uv = shutil.which("uv")
+        uv = _uv()
         if not uv:
             raise SandboxError("uv not found")
         venv = root.parent / f".venv-{label}"
@@ -63,7 +81,7 @@ class LocalExecutor:
         env = {**os.environ, **BUILD_ENV}
         for k in ("NEBIUS_API_KEY", "TAVILY_API_KEY", "GITHUB_TOKEN", "NEBIUS_PROJECT_ID"):
             env.pop(k, None)
-        await _run([uv, "venv", "--quiet", "--python", "3.12", str(venv)], timeout=180, env=env)
+        await _run([uv, "venv", "--quiet", "--python", VENV_PYTHON, str(venv)], timeout=180, env=env)
         args = [uv, "pip", "install", "--quiet", "--python", str(py), "-e", spec, "pytest>=8"]
         req = root / "requirements.txt"
         if req.exists():
@@ -74,7 +92,7 @@ class LocalExecutor:
         return str(py), {"python": "venv", "installed": True}
 
     async def _venv_for(self, requirements: str) -> tuple[str, dict[str, Any]]:
-        uv = shutil.which("uv")
+        uv = _uv()
         key = hashlib.sha256(("py312\n" + requirements.strip()).encode()).hexdigest()[:16]
         venv = _ensure(settings.workdir / "venvs") / key
         py = _venv_python(venv)
@@ -86,7 +104,7 @@ class LocalExecutor:
                 return sys.executable, {"python": "host", "warning": "uv not found; dependencies not isolated"}
             req_file = venv.parent / f"{key}.txt"
             req_file.write_text(requirements.rstrip() + "\npytest>=8\n", encoding="utf-8")
-            await _run([uv, "venv", "--quiet", "--python", "3.12", str(venv)], timeout=180)
+            await _run([uv, "venv", "--quiet", "--python", VENV_PYTHON, str(venv)], timeout=180)
             code, out, err = await _run(
                 [uv, "pip", "install", "--quiet", "--python", str(py), "-r", str(req_file)], timeout=600
             )

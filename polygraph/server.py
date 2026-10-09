@@ -177,6 +177,60 @@ async def start_run(req: RunRequest, request: Request) -> dict[str, Any]:
     return {"id": run_id}
 
 
+@app.post("/api/live")
+async def live_stream(req: RunRequest, request: Request) -> EventSourceResponse:
+    """Run an examination inside this one request and stream its events back.
+
+    Serverless hosts (Vercel) keep no state between requests, so the run cannot outlive the response that
+    started it. Same gates as /api/runs: access code, spending caps, rate limits.
+    """
+    if ACCESS_CODE and not hmac.compare_digest((req.access_code or "").strip(), ACCESS_CODE):
+        raise HTTPException(403, "Live runs on this deployment need an access code. Recorded runs are open to everyone.")
+    if not settings.has_llm:
+        raise HTTPException(503, "This deployment has no Token Factory key configured.")
+    try:
+        ledger.check_can_start()
+    except BudgetExceeded as e:
+        raise HTTPException(402, str(e)) from e
+    if req.kind == "github" and not settings.allow_remote_repos:
+        raise HTTPException(403, "Analysing arbitrary repositories is disabled on this deployment.")
+    _rate_limit(_client_ip(request))
+    run_id = uuid.uuid4().hex[:12]
+    try:
+        if req.kind == "scenario" and req.scenario:
+            subject = from_scenario(req.scenario, run_id)
+        elif req.kind == "github" and req.url:
+            subject = await from_github(req.url, run_id)
+        else:
+            raise HTTPException(400, "Provide a scenario name or a GitHub pull request URL.")
+    except SourceError as e:
+        raise HTTPException(400, str(e)) from e
+
+    from .engine import Engine
+
+    bus = EventBus()
+    queue = bus.subscribe()
+    engine = Engine(subject, bus)
+    task = asyncio.create_task(engine.run())
+
+    async def stream():
+        try:
+            while True:
+                ev = await queue.get()
+                if ev is None:
+                    break
+                yield {"event": ev.type, "data": json.dumps(ev.to_dict())}
+        finally:
+            if not task.done():
+                task.cancel()
+            try:
+                await task
+            except BaseException:  # noqa: BLE001
+                pass
+
+    return EventSourceResponse(stream(), ping=10)
+
+
 @app.get("/api/runs/{run_id}")
 async def get_run(run_id: str) -> JSONResponse:
     live = RUNS.get(run_id)

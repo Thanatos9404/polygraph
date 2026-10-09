@@ -1,0 +1,10 @@
+.venv
+.polygraph
+.env
+web
+docs
+deck
+tests
+scripts
+bench
+.claude
