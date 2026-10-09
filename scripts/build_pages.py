@@ -1,6 +1,6 @@
 """Build the static GitHub Pages site: the web app plus every recorded run as JSON, replayed in the browser.
 
-Usage: python scripts/build_pages.py [--api https://live-backend.example]   -> web/dist-pages
+Usage: python scripts/build_pages.py [--base /polygraph/] [--api https://live-backend.example]   -> web/dist-pages
 """
 
 import json
@@ -22,9 +22,10 @@ OUT = WEB / "dist-pages"
 
 def main() -> None:
     api = sys.argv[sys.argv.index("--api") + 1] if "--api" in sys.argv else ""
+    base = sys.argv[sys.argv.index("--base") + 1] if "--base" in sys.argv else "/polygraph/"
     env = {**os.environ, "VITE_STATIC": "1", "VITE_API_BASE": api}
     npx = shutil.which("npx") or "npx"
-    subprocess.run([npx, "vite", "build", "--base=/polygraph/", "--outDir", "dist-pages", "--emptyOutDir"], cwd=WEB, env=env, check=True, shell=os.name == "nt")
+    subprocess.run([npx, "vite", "build", f"--base={base}", "--outDir", "dist-pages", "--emptyOutDir"], cwd=WEB, env=env, check=True, shell=os.name == "nt")
 
     data = OUT / "data"
     (data / "runs").mkdir(parents=True, exist_ok=True)

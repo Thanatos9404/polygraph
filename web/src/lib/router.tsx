@@ -4,7 +4,11 @@ const BASE = import.meta.env.BASE_URL.replace(/\/$/, "");
 
 /** An in-app path with the deployment base prefixed (GitHub Pages serves the app under /polygraph). */
 export function href(to: string) {
-  return to.startsWith("http") ? to : `${BASE}${to}`;
+  if (to.startsWith("http")) return to;
+  // Static hosts have no SPA fallback, so run pages are addressed as /?run=<id> there.
+  const run = import.meta.env.VITE_STATIC === "1" ? to.match(/^\/run\/([\w-]+)\??(.*)$/) : null;
+  if (run) return `${BASE}/?run=${run[1]}${run[2] ? `&${run[2]}` : ""}`;
+  return `${BASE}${to}`;
 }
 
 function strip(path: string) {

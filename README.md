@@ -20,8 +20,11 @@ can commit.
 
 Built for the Nebius x NVIDIA Global AI Hackathon, **Coding and Agentic Engineering** track.
 
-- Live demo: `https://huggingface.co/spaces/<your-space>` (recorded runs replay free; live runs need the access code in the Devpost testing notes)
-- Demo video: `https://youtu.be/<video-id>`
+- **Live demo:** https://yvt94-polygraph.static.hf.space (every recorded run replays in your browser)
+- **Demo video:** https://youtu.be/VFzUl18uwP8
+- **Run it live yourself:** `polygraph pr <github-pr-url>` (see Quick start), or deploy the API for free:
+
+  [![Deploy to Render](https://render.com/images/deploy-to-render-button.svg)](https://render.com/deploy?repo=https://github.com/Thanatos9404/polygraph)
 - Deck: [`deck/Polygraph.pdf`](deck/Polygraph.pdf)
 
 ---
@@ -207,8 +210,9 @@ docker build -t polygraph .
 docker run -p 7860:7860 -e NEBIUS_API_KEY=... -e POLYGRAPH_ACCESS_CODE=... polygraph
 ```
 
-On Hugging Face Spaces, create a Docker Space, push this repository, and add `NEBIUS_API_KEY`, `TAVILY_API_KEY`,
-and `POLYGRAPH_ACCESS_CODE` as Space secrets.
+Free hosting used for the demo: the web app is built in static mode (`python scripts/build_pages.py --base /`) and
+served from a Hugging Face Static Space, where recorded runs replay entirely in the browser. The live API deploys to
+Render's free tier from `render.yaml`; set `VITE_API_BASE` at build time to point the static site at it.
 
 ## Case files
 

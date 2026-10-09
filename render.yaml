@@ -1,0 +1,20 @@
+# One-click free deployment of the Polygraph API and web app on Render.
+# Render prompts for the secret values marked sync: false; they never live in this repository.
+services:
+  - type: web
+    name: polygraph
+    runtime: docker
+    plan: free
+    dockerfilePath: ./Dockerfile
+    healthCheckPath: /api/health
+    envVars:
+      - key: NEBIUS_API_KEY
+        sync: false
+      - key: TAVILY_API_KEY
+        sync: false
+      - key: POLYGRAPH_ACCESS_CODE
+        sync: false
+      - key: POLYGRAPH_CORS_ORIGINS
+        value: https://yvt94-polygraph.static.hf.space
+      - key: PORT
+        value: "7860"

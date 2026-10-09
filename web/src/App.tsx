@@ -15,7 +15,9 @@ export default function App() {
     api.health().then(setHealth).catch(() => setHealth(null));
   }, []);
 
-  const runMatch = path.match(/^\/run\/([\w-]+)/);
+  // Static hosts without SPA fallback link runs as ?run=<id>.
+  const queryRun = new URLSearchParams(search).get("run");
+  const runMatch = path.match(/^\/run\/([\w-]+)/) || (queryRun && /^[\w-]+$/.test(queryRun) ? [null, queryRun] : null);
 
   return (
     <TooltipProvider delayDuration={150}>

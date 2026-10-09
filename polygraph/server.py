@@ -19,6 +19,7 @@ from pathlib import Path
 from typing import Any
 
 from fastapi import FastAPI, HTTPException, Request
+from fastapi.middleware.cors import CORSMiddleware
 from fastapi.middleware.gzip import GZipMiddleware
 from fastapi.responses import FileResponse, JSONResponse, PlainTextResponse
 from pydantic import BaseModel
@@ -40,6 +41,12 @@ MAX_LIVE = int(os.getenv("POLYGRAPH_MAX_CONCURRENT_RUNS", "2"))
 
 app = FastAPI(title="Polygraph", version=__version__, docs_url="/api/docs", openapi_url="/api/openapi.json")
 app.add_middleware(GZipMiddleware, minimum_size=2048)
+# The static site (Hugging Face Static Space) calls this API for live runs.
+CORS_ORIGINS = [o.strip() for o in os.getenv("POLYGRAPH_CORS_ORIGINS", "").split(",") if o.strip()]
+if CORS_ORIGINS:
+    app.add_middleware(
+        CORSMiddleware, allow_origins=CORS_ORIGINS, allow_methods=["GET", "POST"], allow_headers=["Content-Type"]
+    )
 
 
 class LiveRun:

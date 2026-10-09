@@ -89,7 +89,10 @@ export default function RunPage({ id, speed, health }: { id: string; speed: numb
             </motion.p>
           ) : (
             <p className="mt-4 max-w-3xl text-[16px] text-muted-foreground">
-              {s.subject?.body?.split("\n")[0] || "Waiting for the first events"}
+              {s.subject?.body
+                ?.split("\n")
+                .find((l) => l.trim() && !l.trim().startsWith("#"))
+                ?.replace(/[*_`]/g, "") || "Waiting for the first events"}
             </p>
           )}
         </div>
