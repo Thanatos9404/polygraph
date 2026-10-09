@@ -1,0 +1,200 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<title>Polygraph motion</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Geist:wght@400;500;600&family=Geist+Mono:wght@400;500&display=swap" rel="stylesheet" />
+<style>
+  :root { --ink:#121110; --paper:#f3f1ec; --sig:#e5482a; --emb:#ff8a5c; --ua:#7d9cc6; --mut:#a8a196; --ok:#6fc596; }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body { width: 1920px; height: 1080px; overflow: hidden; background: var(--ink); color: var(--paper); font-family: Geist, system-ui, sans-serif; }
+  #stage { position: absolute; inset: 0; overflow: hidden; }
+  .abs { position: absolute; will-change: transform, opacity; }
+  .grid { inset: -200px; background-image: linear-gradient(rgba(168,161,150,.07) 1px, transparent 1px), linear-gradient(90deg, rgba(168,161,150,.07) 1px, transparent 1px); background-size: 48px 48px; }
+  .serif { font-family: 'Instrument Serif', Georgia, serif; font-weight: 400; }
+  .mono { font-family: 'Geist Mono', monospace; }
+  .eyebrow { font-family: 'Geist Mono', monospace; font-size: 22px; letter-spacing: 5px; text-transform: uppercase; color: var(--sig); }
+  .pr { left: 560px; top: 330px; width: 800px; padding: 44px 52px; border-radius: 28px; background: #1c1a18; border: 2px solid #34302b; box-shadow: 0 60px 120px -40px rgba(0,0,0,.7); }
+  .pr h2 { font-size: 46px; line-height: 1.1; margin-top: 18px; }
+  .pr .claim { margin-top: 26px; font-size: 30px; color: #cfc9bd; }
+  .chk { display: inline-block; margin-left: 12px; color: var(--ok); }
+  .uni { top: 230px; width: 700px; height: 560px; border-radius: 32px; border: 2px solid #34302b; background: #181614; }
+  .uni .lab { position: absolute; left: 36px; top: 30px; font-family: 'Geist Mono', monospace; font-size: 22px; letter-spacing: 4px; text-transform: uppercase; }
+  .uni .big { position: absolute; left: 36px; top: 70px; font-family: 'Instrument Serif', Georgia, serif; font-size: 64px; }
+  .row { position: absolute; left: 36px; right: 36px; height: 58px; border-radius: 14px; display: flex; align-items: center; padding: 0 22px; font-family: 'Geist Mono', monospace; font-size: 26px; background: #221f1c; }
+  .dot { width: 18px; height: 18px; border-radius: 50%; background: var(--emb); box-shadow: 0 0 24px rgba(255,138,92,.8); }
+  .stamp { left: 1240px; top: 708px; padding: 14px 34px; border: 6px solid var(--sig); border-radius: 18px; color: var(--sig); font-family: 'Geist Mono', monospace; text-transform: uppercase; text-align: center; }
+  .stamp small { display: block; font-size: 20px; letter-spacing: 7px; opacity: .85; }
+  .stamp b { display: block; font-size: 54px; letter-spacing: 6px; font-weight: 500; }
+  .led { left: 300px; width: 1320px; height: 92px; border-radius: 20px; background: #1c1a18; border: 2px solid #2d2a26; display: flex; align-items: center; gap: 28px; padding: 0 36px; font-size: 32px; }
+  .badge { margin-left: auto; font-family: 'Geist Mono', monospace; font-size: 22px; letter-spacing: 3px; text-transform: uppercase; padding: 8px 18px; border-radius: 999px; }
+  .chip { width: 380px; height: 250px; border-radius: 28px; padding: 30px; background: linear-gradient(180deg, rgba(229,72,42,.22), #1c1a18 70%); border: 2px solid #34302b; }
+  .chip .t { font-family: 'Instrument Serif', Georgia, serif; font-size: 44px; line-height: 1.05; }
+  .chip .r { margin-top: 14px; font-size: 24px; color: #cfc9bd; line-height: 1.35; }
+  .chip .id { margin-top: 12px; font-family: 'Geist Mono', monospace; font-size: 17px; color: var(--mut); }
+</style>
+</head>
+<body>
+<div id="stage">
+  <div class="abs grid" id="grid"></div>
+  <svg class="abs" id="trace" width="1920" height="1080" viewBox="0 0 1920 1080" style="left:0;top:0">
+    <path id="pa" fill="none" stroke="#7d9cc6" stroke-width="5" />
+    <path id="pb" fill="none" stroke="#e5482a" stroke-width="6" />
+  </svg>
+
+  <!-- scene 1: a pull request -->
+  <div class="abs pr" id="pr">
+    <div class="eyebrow">Pull request #418 · autocoder[bot]</div>
+    <h2 class="serif">refactor: replace the slug loop with a single regex</h2>
+    <div class="claim" id="c1">No behavior change.<span class="chk" id="k1">✓ claimed</span></div>
+    <div class="claim" id="c2">All existing tests pass.<span class="chk" id="k2">✓ green</span></div>
+  </div>
+  <div class="abs serif" id="q1" style="left:0;width:1920px;top:850px;text-align:center;font-size:58px">Who checks the claims?</div>
+
+  <!-- scene 2: two universes -->
+  <div class="abs uni" id="ua" style="left:200px">
+    <div class="lab" style="color:var(--ua)">Universe A · before</div>
+    <div class="big">main</div>
+    <div class="row" id="a1" style="top:200px">slugify('Hello World') <span style="margin-left:auto;color:var(--ua)">hello-world</span></div>
+    <div class="row" id="a2" style="top:274px">slugify('Café crème') <span style="margin-left:auto;color:var(--ua)">cafe-creme</span></div>
+    <div class="row" id="a3" style="top:348px">slugify('Straße') <span style="margin-left:auto;color:var(--ua)">strasse</span></div>
+    <div class="row" id="a4" style="top:422px">slugify('foo_bar') <span style="margin-left:auto;color:var(--ua)">foo-bar</span></div>
+  </div>
+  <div class="abs uni" id="ub" style="left:1020px">
+    <div class="lab" style="color:var(--emb)">Universe B · the PR</div>
+    <div class="big">autocoder/simplify</div>
+    <div class="row" id="b1" style="top:200px">slugify('Hello World') <span style="margin-left:auto;color:var(--emb)">hello-world</span></div>
+    <div class="row" id="b2" style="top:274px">slugify('Café crème') <span style="margin-left:auto;color:var(--emb)">cafe-creme</span></div>
+    <div class="row" id="b3" style="top:348px">slugify('Straße') <span style="margin-left:auto;color:var(--emb)">strae</span></div>
+    <div class="row" id="b4" style="top:422px">slugify('foo_bar') <span style="margin-left:auto;color:var(--emb)">foo_bar</span></div>
+  </div>
+  <div class="abs" id="dots" style="left:0;top:0;width:1920px;height:1080px"></div>
+  <div class="abs serif" id="t2" style="left:0;width:1920px;top:850px;text-align:center;font-size:58px">Same inputs. Two universes. <i style="color:var(--emb)">Compare what actually happens.</i></div>
+
+  <!-- scene 3: ledger -->
+  <div class="abs eyebrow" id="ledh" style="left:300px;top:190px">Claim ledger</div>
+  <div class="abs led" id="l1" style="top:250px"><span class="mono" style="color:var(--mut)">C1</span>No behavior change<span class="badge" style="background:rgba(229,72,42,.15);color:var(--emb)">contradicted</span></div>
+  <div class="abs led" id="l2" style="top:362px"><span class="mono" style="color:var(--mut)">C2</span>All existing tests pass<span class="badge" style="background:rgba(111,197,150,.15);color:var(--ok)">confirmed</span></div>
+  <div class="abs led" id="l3" style="top:474px"><span class="mono" style="color:var(--mut)">C3</span>About 2x faster<span class="badge" style="background:rgba(111,197,150,.15);color:var(--ok)">confirmed by timing</span></div>
+  <div class="abs led" id="l4" style="top:586px;border-color:#5a2a1f"><span class="mono" style="color:var(--emb)">D1</span>Undeclared: 'Straße' became 'strae'<span class="badge" style="background:var(--sig);color:#121110">high</span></div>
+  <div class="abs stamp" id="stamp"><small>Polygraph</small><b>Inconsistent</b></div>
+
+  <!-- scene 4: models -->
+  <div class="abs serif" id="mh" style="left:0;width:1920px;top:180px;text-align:center;font-size:76px">Four NVIDIA Nemotron models. <i style="color:var(--emb)">Each sized to its job.</i></div>
+  <div class="abs chip" id="m1" style="left:150px;top:380px"><div class="t">Nemotron 3 Ultra</div><div class="r">Claims, experiment plan, verdict</div><div class="id">550B · reasoning</div></div>
+  <div class="abs chip" id="m2" style="left:560px;top:380px"><div class="t">Nemotron 3 Super</div><div class="r">Splits and explains divergences</div><div class="id">120B · in parallel</div></div>
+  <div class="abs chip" id="m3" style="left:970px;top:380px"><div class="t">Nemotron 3.5 Lightning</div><div class="r">Writes executable probes</div><div class="id">1M context · fast</div></div>
+  <div class="abs chip" id="m4" style="left:1380px;top:380px"><div class="t">Nemotron 3 Nano</div><div class="r">Repairs probes that break</div><div class="id">30B · cheap</div></div>
+  <div class="abs mono" id="mf" style="left:0;width:1920px;top:720px;text-align:center;font-size:30px;color:#cfc9bd">on Nebius Token Factory · about 4 cents per pull request</div>
+
+  <!-- scene 5: title -->
+  <div class="abs eyebrow" id="fe" style="left:0;width:1920px;top:330px;text-align:center">Nebius x NVIDIA Global AI Hackathon</div>
+  <div class="abs serif" id="ft" style="left:0;width:1920px;top:390px;text-align:center;font-size:220px;letter-spacing:-5px;line-height:1">Polygraph</div>
+  <div class="abs serif" id="fs" style="left:0;width:1920px;top:640px;text-align:center;font-size:64px">Every pull request makes claims. <i style="color:var(--emb)">We check them by experiment.</i></div>
+</div>
+
+<script>
+  // Deterministic timeline: render(t) draws the frame at t seconds. The recorder steps t at 30 fps.
+  const $ = (id) => document.getElementById(id);
+  const clamp = (v, a = 0, b = 1) => Math.min(b, Math.max(a, v));
+  const ease = (x) => (x < 0.5 ? 4 * x * x * x : 1 - Math.pow(-2 * x + 2, 3) / 2);
+  const back = (x) => { const c1 = 1.7, c3 = c1 + 1; return 1 + c3 * Math.pow(x - 1, 3) + c1 * Math.pow(x - 1, 2); };
+  const prog = (t, a, b, f = ease) => f(clamp((t - a) / (b - a)));
+  const win = (t, a, b, fi = 0.5, fo = 0.5) => Math.min(prog(t, a, a + fi), 1 - prog(t, b - fo, b));
+  function set(id, o = {}) {
+    const el = $(id); if (!el) return;
+    const { x = 0, y = 0, s = 1, r = 0, op = 1, blur = 0, rx = 0 } = o;
+    el.style.transform = `perspective(1400px) translate(${x}px, ${y}px) rotateX(${rx}deg) rotate(${r}deg) scale(${s})`;
+    el.style.opacity = op;
+    el.style.filter = blur ? `blur(${blur}px)` : "none";
+  }
+
+  const dotsEl = $("dots");
+  const DOTS = 18;
+  for (let i = 0; i < DOTS; i++) { const d = document.createElement("div"); d.className = "abs dot"; d.id = "d" + i; dotsEl.appendChild(d); }
+
+  function wave(s, spike) {
+    let y = 18 * Math.sin(s * 1.7) + 8 * Math.sin(s * 4.3 + 1.3);
+    if (spike) for (const c of [3.1, 7.9, 12.4]) y += spike * 150 * Math.exp(-((s - c) ** 2) / 0.05) * (c === 7.9 ? -1 : 1);
+    return y;
+  }
+  function trace(t, opacity, spike, yBase) {
+    let a = "", b = "";
+    for (let i = 0; i <= 160; i++) {
+      const x = i * 12, s = x / 110 + t * 0.9;
+      a += (i ? "L" : "M") + x + "," + (yBase + wave(s, 0)).toFixed(1);
+      b += (i ? "L" : "M") + x + "," + (yBase + 12 + wave(s, spike)).toFixed(1);
+    }
+    $("pa").setAttribute("d", a); $("pb").setAttribute("d", b);
+    $("trace").style.opacity = opacity;
+  }
+
+  window.render = function (t) {
+    $("grid").style.transform = `translate(${-t * 14}px, ${-t * 6}px)`;
+    // traces: subtle in scene 1, loud between scenes, gone during the ledger
+    const trOp = 0.35 * win(t, 0, 6.2) + 0.9 * win(t, 15.6, 19.2, 0.4, 0.4) + 0.6 * win(t, 28.2, 34, 0.6, 0.1);
+    const spike = prog(t, 15.8, 17.2) * (1 - prog(t, 18.5, 19.2)) + 0.4 * prog(t, 29, 31);
+    trace(t, trOp, spike, t < 20 ? 900 : 920);
+
+    // scene 1: PR card (0 - 6.4s)
+    const p1 = prog(t, 0.2, 1.4, back), o1 = 1 - prog(t, 5.6, 6.4);
+    set("pr", { y: (1 - p1) * 80 - prog(t, 5.6, 6.4) * 60, s: 0.92 + 0.08 * p1, op: Math.min(prog(t, 0.2, 1.0), o1), rx: (1 - p1) * 18 });
+    set("c1", { op: prog(t, 1.4, 2.0), x: (1 - prog(t, 1.4, 2.0)) * -20 });
+    set("c2", { op: prog(t, 2.0, 2.6), x: (1 - prog(t, 2.0, 2.6)) * -20 });
+    set("k1", { op: prog(t, 2.8, 3.1), s: 0.6 + 0.4 * prog(t, 2.8, 3.1, back) });
+    set("k2", { op: prog(t, 3.1, 3.4), s: 0.6 + 0.4 * prog(t, 3.1, 3.4, back) });
+    set("q1", { op: win(t, 3.8, 6.3), y: (1 - prog(t, 3.8, 4.6)) * 20, blur: (1 - prog(t, 3.8, 4.6)) * 8 });
+
+    // scene 2: universes split apart (6.2 - 15.8s)
+    const sp = prog(t, 6.2, 7.6, back), o2 = 1 - prog(t, 15.0, 15.8);
+    set("ua", { x: (1 - sp) * 410, op: Math.min(prog(t, 6.2, 6.8), o2), rx: (1 - sp) * 10 });
+    set("ub", { x: (1 - sp) * -410, op: Math.min(prog(t, 6.2, 6.8), o2), rx: (1 - sp) * 10 });
+    for (let i = 1; i <= 4; i++) {
+      const a0 = 7.6 + (i - 1) * 1.15;
+      const pa = prog(t, a0, a0 + 0.5);
+      set("a" + i, { op: Math.min(pa, o2), x: (1 - pa) * -24 });
+      set("b" + i, { op: Math.min(pa, o2), x: (1 - pa) * 24 });
+      const bad = i >= 3, flash = bad ? prog(t, a0 + 0.5, a0 + 0.9) : 0;
+      $("b" + i).style.background = bad && t > a0 + 0.5 ? `rgba(229,72,42,${0.12 + 0.2 * flash})` : "#221f1c";
+      $("b" + i).style.boxShadow = bad && t > a0 + 0.5 ? `0 0 0 2px rgba(229,72,42,${0.8 * flash})` : "none";
+    }
+    // dots carry inputs from the center into both universes
+    for (let i = 0; i < DOTS; i++) {
+      const start = 7.4 + i * 0.32, k = prog(t, start, start + 1.1, (x) => x);
+      const side = i % 2 ? 1 : -1, row = (i >> 1) % 4;
+      const y = 430 + row * 74 + 28, x = 960 + side * k * 380;
+      const vis = k > 0 && k < 1 && t < 15 ? Math.sin(Math.PI * k) : 0;
+      set("d" + i, { x: x - 9, y: y - 9, op: vis, s: 0.6 + vis * 0.6 });
+    }
+    set("t2", { op: win(t, 8.6, 15.6), y: (1 - prog(t, 8.6, 9.4)) * 20, blur: (1 - prog(t, 8.6, 9.4)) * 8 });
+
+    // scene 3: claim ledger and stamp (18.8 - 28s)
+    const o3 = 1 - prog(t, 27.2, 28.0);
+    set("ledh", { op: Math.min(prog(t, 18.8, 19.4), o3) });
+    ["l1", "l2", "l3", "l4"].forEach((id, i) => {
+      const a = 19.0 + i * 0.7, pp = prog(t, a, a + 0.7, back);
+      set(id, { op: Math.min(prog(t, a, a + 0.4), o3), y: (1 - pp) * 50, s: 0.96 + 0.04 * pp });
+    });
+    const st = prog(t, 22.6, 23.3, back);
+    set("stamp", { op: Math.min(prog(t, 22.6, 22.9), o3), s: 2.2 - 1.2 * st, r: -14 + 6 * st });
+
+    // scene 4: models (27.8 - 35.4s)
+    const o4 = 1 - prog(t, 34.6, 35.4);
+    set("mh", { op: Math.min(prog(t, 27.8, 28.6), o4), y: (1 - prog(t, 27.8, 28.8)) * 30, blur: (1 - prog(t, 27.8, 28.8)) * 10 });
+    ["m1", "m2", "m3", "m4"].forEach((id, i) => {
+      const a = 28.6 + i * 0.35, pp = prog(t, a, a + 0.9, back);
+      set(id, { op: Math.min(prog(t, a, a + 0.5), o4), y: (1 - pp) * 120, rx: (1 - pp) * 40 });
+    });
+    set("mf", { op: Math.min(prog(t, 30.6, 31.4), o4) });
+
+    // scene 5: title (35.2 - 40s)
+    set("fe", { op: prog(t, 35.3, 36.0) });
+    set("ft", { op: prog(t, 35.4, 36.4), s: 1.08 - 0.08 * prog(t, 35.4, 37.0), blur: (1 - prog(t, 35.4, 36.4)) * 14 });
+    set("fs", { op: prog(t, 36.4, 37.2), y: (1 - prog(t, 36.4, 37.2)) * 24 });
+  };
+  window.DURATION = 40;
+  render(0);
+</script>
+</body>
+</html>

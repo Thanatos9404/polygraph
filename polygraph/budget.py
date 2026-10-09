@@ -72,8 +72,13 @@ class Ledger:
     def _day(self) -> float:
         return float(self._data["days"].get(_today(), 0.0))
 
+    def _refresh(self) -> None:
+        # Several processes (CLI, server, Action) may share one ledger file: always build on the latest totals.
+        self._data = self._load()
+
     def remaining(self) -> float:
         with self._lock:
+            self._refresh()
             return max(
                 0.0,
                 min(
@@ -91,6 +96,7 @@ class Ledger:
 
     def reserve(self, usd: float, run_spent: float) -> None:
         with self._lock:
+            self._refresh()
             if run_spent + usd > self.caps.run_usd:
                 raise BudgetExceeded(f"per-run cap of ${self.caps.run_usd:.2f} reached")
             if self._data["lifetime_usd"] + self._reserved + usd > self.caps.lifetime_usd:
@@ -101,6 +107,7 @@ class Ledger:
 
     def settle(self, reserved: float, actual: float) -> None:
         with self._lock:
+            self._refresh()
             self._reserved = max(0.0, self._reserved - reserved)
             self._data["lifetime_usd"] = round(self._data["lifetime_usd"] + actual, 6)
             day = _today()
@@ -109,6 +116,7 @@ class Ledger:
 
     def take_tavily(self, credits: int) -> None:
         with self._lock:
+            self._refresh()
             day = _today()
             used = int(self._data.setdefault("tavily", {}).get(day, 0))
             if used + credits > self.caps.tavily_daily_credits:
@@ -118,6 +126,7 @@ class Ledger:
 
     def snapshot(self) -> dict[str, Any]:
         with self._lock:
+            self._refresh()
             return {
                 "lifetime_spent": round(self._data["lifetime_usd"], 4),
                 "lifetime_cap": self.caps.lifetime_usd,
