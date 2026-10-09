@@ -4,7 +4,8 @@ import { ArrowUpRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { GithubIcon, REPO_URL, Wordmark } from "./brand";
 import { ThemeToggle } from "./theme";
-import { Link, navigate } from "@/lib/router";
+import { href, Link, navigate } from "@/lib/router";
+import { api } from "@/lib/api";
 import { cn } from "@/lib/utils";
 
 const NAV = [
@@ -14,9 +15,9 @@ const NAV = [
   { href: "/#install", label: "Install" },
 ];
 
-function goHash(href: string) {
-  const [path, hash] = href.split("#");
-  if (location.pathname !== (path || "/")) navigate(path || "/");
+function goHash(target: string) {
+  const [path, hash] = target.split("#");
+  if (location.pathname !== href(path || "/")) navigate(path || "/");
   requestAnimationFrame(() => document.getElementById(hash)?.scrollIntoView({ behavior: "smooth", block: "start" }));
 }
 
@@ -98,15 +99,24 @@ function Footer() {
         </div>
         {[
           { h: "Product", l: [["How it works", "/#how"], ["Case files", "/#cases"], ["Models", "/#models"]] },
-          { h: "Use it", l: [["Install the CLI", "/#install"], ["GitHub Action", "/#install"], ["API docs", "/api/docs"]] },
+          { h: "Use it", l: [["Install the CLI", "/#install"], ["GitHub Action", "/#install"], api.isStatic ? ["README", `${REPO_URL}#readme`] : ["API docs", "/api/docs"]] },
           { h: "Project", l: [["Source code", REPO_URL], ["Nebius Token Factory", "https://tokenfactory.nebius.com"], ["NVIDIA Nemotron", "https://www.nvidia.com/en-us/ai-data-science/foundation-models/nemotron/"]] },
         ].map((col) => (
           <div key={col.h}>
             <div className="mb-3 font-mono text-[11px] uppercase tracking-[0.18em] text-white/50">{col.h}</div>
             <ul className="space-y-2 text-[14px]">
-              {col.l.map(([label, href]) => (
+              {col.l.map(([label, link]) => (
                 <li key={label}>
-                  <a href={href} className="text-white/75 transition hover:text-white" {...(href.startsWith("http") ? { target: "_blank", rel: "noreferrer" } : {})}>
+                  <a
+                    href={link.startsWith("http") ? link : href(link)}
+                    onClick={(e) => {
+                      if (!link.startsWith("/#")) return;
+                      e.preventDefault();
+                      goHash(link);
+                    }}
+                    className="text-white/75 transition hover:text-white"
+                    {...(link.startsWith("http") ? { target: "_blank", rel: "noreferrer" } : {})}
+                  >
                     {label}
                   </a>
                 </li>

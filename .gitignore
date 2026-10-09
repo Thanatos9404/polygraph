@@ -13,3 +13,4 @@ build/
 .claude/
 scripts/__pycache__/
 docs/video/
+web/dist-pages/

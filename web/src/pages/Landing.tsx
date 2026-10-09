@@ -104,9 +104,9 @@ export default function Landing({ health }: { health: Health | null }) {
       .then((s) => {
         setCases(s);
         const first = s.find((c) => c.recorded)?.recorded;
-        if (first) fetch(`/api/runs/${first.id}`).then((r) => r.json()).then(setShowcase).catch(() => {});
+        if (first) api.run(first.id).then(setShowcase).catch(() => {});
         const dep = s.find((c) => c.id === "packaging-bump")?.recorded;
-        if (dep) fetch(`/api/runs/${dep.id}`).then((r) => r.json()).then(setContrast).catch(() => {});
+        if (dep) api.run(dep.id).then(setContrast).catch(() => {});
       })
       .catch(() => setCases([]));
   }, []);
@@ -222,7 +222,7 @@ function Hero({ health, launcher }: { health: Health | null; launcher: ReturnTyp
           transition={{ delay: 1.2 }}
           className="mt-4 text-center text-[13px] text-muted-foreground"
         >
-          Public Python repositories.{" "}
+          {api.isStatic && !api.canLive ? "Static demo: recorded runs replay in your browser; run live with the CLI. " : "Public Python repositories. "}
           <button
             className="underline decoration-dotted underline-offset-4 hover:text-foreground"
             onClick={() => document.getElementById("cases")?.scrollIntoView({ behavior: "smooth" })}

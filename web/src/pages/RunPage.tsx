@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useReducer, useState } from "react";
 import { motion } from "framer-motion";
 import { ArrowLeft, Check, Download, ExternalLink, FileCode2, GitBranch, Loader2, Radio, ShieldAlert } from "lucide-react";
-import { api, type Health } from "@/lib/api";
+import { api, downloadText, type Health } from "@/lib/api";
 import { initial, reduce, STAGES } from "@/lib/state";
 import { Link } from "@/lib/router";
 import { ClaimLedger, Code, CopyButton, DivergenceCard, Experiments, Stamp, SuiteStrip, Trace } from "@/components/run";
@@ -197,20 +197,18 @@ export default function RunPage({ id, speed, health }: { id: string; speed: numb
                 <>
                   <div className="flex flex-wrap gap-2">
                     <CopyButton text={s.result.artifacts.markdown} label="Copy PR comment" />
-                    <a
-                      href={`/api/runs/${id}/test_polygraph_pinned.py`}
+                    <button
+                      onClick={() => downloadText("test_polygraph_pinned.py", s.result!.artifacts.pinned_tests, "text/x-python")}
                       className="inline-flex items-center gap-1.5 rounded-full border px-3 py-1 text-[12px] transition hover:bg-accent"
                     >
                       <Download className="h-3.5 w-3.5" /> Pinned regression tests
-                    </a>
-                    <a
-                      href={`/api/runs/${id}/comment.md`}
-                      target="_blank"
-                      rel="noreferrer"
+                    </button>
+                    <button
+                      onClick={() => downloadText("polygraph-comment.md", s.result!.artifacts.markdown, "text/markdown")}
                       className="inline-flex items-center gap-1.5 rounded-full border px-3 py-1 text-[12px] transition hover:bg-accent"
                     >
-                      <FileCode2 className="h-3.5 w-3.5" /> Raw markdown
-                    </a>
+                      <FileCode2 className="h-3.5 w-3.5" /> Markdown file
+                    </button>
                   </div>
                   <Code code={s.result.artifacts.markdown} className="max-h-[600px] whitespace-pre-wrap" />
                 </>
