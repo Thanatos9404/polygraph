@@ -14,3 +14,7 @@ build/
 scripts/__pycache__/
 docs/video/
 web/dist-pages/
+
+.vercel
+.env*
+!.env.example

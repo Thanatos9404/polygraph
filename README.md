@@ -20,7 +20,7 @@ can commit.
 
 Built for the Nebius x NVIDIA Global AI Hackathon, **Coding and Agentic Engineering** track.
 
-- **Live demo:** https://yvt94-polygraph.static.hf.space (every recorded run replays in your browser)
+- **Live demo:** https://yvt94-polygraph.static.hf.space (recorded runs replay in your browser; live runs stream from the free Vercel backend at https://polygraph-amber.vercel.app with the access code from the Devpost testing notes)
 - **Demo video:** https://youtu.be/VFzUl18uwP8
 - **Run it live yourself:** `polygraph pr <github-pr-url>` (see Quick start), or deploy the API for free:
 
